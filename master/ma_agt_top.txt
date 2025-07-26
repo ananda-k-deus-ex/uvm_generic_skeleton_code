@@ -1,0 +1,25 @@
+class ma_agt_top extends uvm_env;
+`uvm_component_utils (ma_agt_top);
+
+ma_agent magenth;
+env_config m_cfg;
+
+extern function new (string name = "ma_agt_top", uvm_component parent);
+extern function void build_phase (uvm_phase phase);
+endclass
+
+function ma_agt_top::new(string name = "ma_agt_top", uvm_component parent);
+  super.new(name, parent);
+endfunction
+
+function void ma_agt_top::build_phase (uvm_phase phase);
+  super.build_phase(phase);
+
+  if (!uvm_config_db #(env_config)::get(this,"","env config",m_cfg))
+  `uvm_fatal ("CONFIG", "cannot get() m_cfg from uvm_config_db. set() it")
+
+  if (m_cfg.has_magent) begin
+    uvm_config_db #(ma_agent_config)::set(this,"magenth","ma_agent_config", m_cfg.ma_agent_cfg);
+    magenth = ma_agent::type_id::create("magenth",this);
+  end
+endfunction

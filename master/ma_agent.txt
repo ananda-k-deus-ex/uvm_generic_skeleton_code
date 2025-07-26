@@ -1,0 +1,32 @@
+class ma_agent extends uvm_agent;
+`uvm_component_utils (ma_agent)
+
+  ma_agent_config m_cfg;
+  ma_monitor monh;
+  ma_driver drvh;
+  ma_sequencer seq;
+
+  extern function new (string name = "ma_agent", uvm_component parent = null);
+  extern function void build_phase (uvm_phase phase);
+  extern function void connect_phase (uvm_phase phase);
+endclass
+
+function void ma_agent::build_phase(uvm_phase phase);
+  super.build_phase (phase);
+
+  if(!uvm_config_db #(ma_agent_config)::get(this, "", "ma_agent_config", m_cfg)
+  `uvm_fatal("CONFIG", "cannot get m_cfg from uvm_config_db. set() it")
+
+  monh = ma_monitor::type_id::create("monh", this);
+
+  if(m_cfg.is_active==UVM_ACTIVE) begin
+    drvh=ma_driver::type_id::create("drvh",this);
+    seq=ma_sequencer::type_id::create("seq",this);
+  end
+endfunction
+
+function void ma_agent::connect_phase(uvm_phase phase);
+  if(m_cfg.is_active==UVM_ACTIVE) begin
+    drvh.seq_item_port.connect(seq.seq_item_export);
+  end
+endfunction

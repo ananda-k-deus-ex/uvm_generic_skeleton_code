@@ -1,0 +1,28 @@
+class mbase_seq extends uvm_sequence #(master_xtn);
+`uvm_object_utils(mbase_seq)
+  extern function new(string name ="mbase_seq"); 
+endclass
+
+function mbase_seq::new(string name ="mbase_seq"); 
+  super.new(name);
+endfunction
+
+class mbase_seq1 extends mbase_seq;
+`uvm_object_utils(mbase_seq1)
+  extern function new(string name ="mbase_seq1"); 
+  extern task body();
+endclass
+
+function mbase_seq1::new(string name ="mbase_seq1"); 
+  super.new(name);
+endfunction
+
+task mbase_seq1::body();
+  req = master_xtn::type_id::create("req"); 
+
+  start_item(req); 
+    assert(req.randomize()); //Inline Constraint - assert(req.randomize() with {c==1; d==0;});
+    `uvm_info("a",$sformatf("printing from sequence \n%d",req.sprint()),UVM_HIGH) 
+  finish_item(req);
+
+endtask

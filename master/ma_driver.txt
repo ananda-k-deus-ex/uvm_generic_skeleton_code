@@ -1,0 +1,50 @@
+class ma_driver extends uvm_driver #(master_xtn);
+`uvm_component_utils(ma_driver)
+
+  virtual intf.MASTER_DRIVER_MP vif; 
+  ma_agent_config m_cfg;
+
+  extern function new(string name ="ma_driver", uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern function void connect_phase(uvm_phase phase); 
+  extern task run_phase(uvm_phase phase);
+  extern task send_to_dut(master_xtn xtn); 
+endclass
+ 
+function ma_driver::new(string name ="ma_driver", uvm_component parent);
+  super.new(name,parent); 
+endfunction
+
+function void ma_driver::build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+  if(!uvm_config_db #(ma_agent_config)::get(this,"","ma_agent_config",m_cfg))
+  `uvm_fatal("CONFIG","cannot get() m_cfg from uvm_config_db. set() it")
+endfunction
+
+function void ma_driver::connect_phase(uvm_phase phase); 
+  vif = m_cfg.vif;
+endfunction
+
+task ma_driver::run_phase(uvm_phase phase); 
+  @(vif.mst_drv_cb);
+  vif.mst_drv_cb.rst <=1'b1; 
+  @(vif.mst_drv_cb); 
+  vif.mst_drv_cb.rst <=1'b0;
+
+  forever begin
+    seq_item_port.get_next_item(req);
+    send_to_dut(req); 
+    seq_item_port.item_done(); 
+  end
+endtask
+
+task ma_driver::send_to_dut(master_xtn xtn);
+`uvm_info("ma_driver",$sformatf("printing from driver \n%s",xtn.sprint()),UVM_LOW)
+
+  @(vif.mst_drv_cb); 
+  vif.mst_drv_cb.a <= xtn.a; //1'b0, 1'b1, $urandom
+  wait(vif.mst_drv_cb.b);
+  vif.mst_drv_cb.a <= 1'b1;
+
+endtask
+
