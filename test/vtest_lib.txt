@@ -1,0 +1,89 @@
+class base_test extends uvm_test;
+`uvm_component_utils(base_test)
+
+  ma_agent_config m_ma_cfg; 
+  sl_agent_config m_sl_cfg; 
+  env_config m_tb_cfg; 
+  env envh;
+
+  int has_sagent=1; 
+  int has_magent=1; 
+  int no_of_magent=1; 
+  int no_of_sagent=1;
+
+  extern function new(string name ="base_test",uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern function void config();
+  extern function void end_of_elaboration_phase(uvm_phase phase);
+endclass
+
+function base_test::new(string name="base_test",uvm_component parent);
+  super.new(name,parent); 
+endfunction
+
+
+function void base_test::config(); 
+  if(has_magent) begin
+    m_ma_cfg = ma_agent_config::type_id::create("m_ma_cfg"); 
+    if(!uvm_config_db #(virtual intf)::get(this,"","vif_0",m_ma_cfg.vif))
+    `uvm_fatal("VIF MA_CONFIG","FAILURE") 
+    m_ma_cfg.is_active=UVM_ACTIVE; 
+    m_tb_cfg.m_ma_agent_cfg=m_ma_cfg;
+  end
+
+  if(has_sagent) begin
+    m_sl_cfg=spi_sl_agent_config::type_id::create("m_sl_cfg"); 
+    if(!uvm_config_db #(virtual intf)::get(this,"","vif_0",m_sl_cfg.vif))
+    `uvm_fatal("VIF SL_CONFIG","FAILURE") 
+    m_sl_cfg.is_active=UVM_ACTIVE;
+    m_tb_cfg.m_sl_agent_cfg=m_sl_cfg; 
+  end
+
+  m_tb_cfg.no_of_magent=no_of_magent; 
+  m_tb_cfg.no_of_sagent=no_of_sagent; 
+  m_tb_cfg.has_magent=has_magent; 
+  m_tb_cfg.has_sagent=has_sagent;
+endfunction
+
+function void base_test::build_phase(uvm_phase phase);
+  `uvm_info("build test","failed","UVM_LOW")
+  m_tb_cfg=env_config::type_id::create("m_tb_cfg");
+  config;
+  uvm_config_db #(env_config)::set(this,"*","env_config",m_tb_cfg); 
+  super.build_phase(phase);
+  envh = env::type_id::create("envh",this);
+endfunction
+
+function void base_test::end_of_elaboration_phase(uvm_phase phase); 
+  uvm_top.print_topology();
+endfunction
+
+//.............................testcase................
+class test1 extends base_test;
+`uvm_component_utils(test1) 
+
+  first_vseq vseq;
+
+  extern function new(string name="test1",uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern task run_phase (uvm_phase phase); 
+endclass
+
+function test1::new(string name="test1",uvm_component parent); 
+  super.new(name,parent);
+endfunction
+
+function void test1::build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+endfunction
+
+task spi_test1::run_phase(uvm_phase phase);
+  $display("**************hi test is processing******************");
+  phase.raise_objection(this); 
+  vseq=first_vseq::type_id::create("vseq");
+  $display("*-------------------hi test is processing"); 
+  vseq.start(envh.v_seqr);
+  #1000;
+  phase.drop_objection(this); 
+endtask
+
