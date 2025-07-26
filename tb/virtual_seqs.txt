@@ -1,0 +1,58 @@
+class vbase_seq extends uvm_sequence#(uvm_sequence_item);
+`uvm_object_utils(vbase_seq)
+
+  ma_sequencer ma_seqrh; 
+  sl_sequencer sl_seqrh;
+  virtual_sequencer vseqrh; 
+  mbase_seq1 seq1_mxtn; 
+  sbase_seq1 seq1_sxtn;
+  env_config m_cfg;
+
+  extern function new(string name="vbase_seq"); 
+  extern task body();
+endclass
+ 
+function vbase_seq::new(string name="vbase_seq"); 
+  super.new(name);
+endfunction
+
+task vbase_seq::body();
+  if(!uvm_config_db#(env_config)::get(null,get_full_name(),"env_config",m_cfg))
+  `uvm_fatal("CONFIG","failed seq body")
+    
+  assert($cast(vseqrh,m_sequencer)) //if(!$cast(vseqrh,m_sequencer)) begin,`uvm_error(),end
+  else begin
+    `uvm_error("BODY","error in $cast of virtual sequencer") 
+  end
+
+  ma_seqrh=vseqrh.ma_seqrh; 
+  sl_seqrh=vseqrh.sl_seqrh;
+endtask
+
+class first_vseq extends vbase_seq;
+`uvm_object_utils(spi_first_vseq)
+
+  extern function new(string name = "first_vseq"); 
+  extern task body();
+endclass
+
+function first_vseq::new(string name ="first_vseq"); 
+  super.new(name);
+endfunction
+
+task first_vseq::body(); 
+super.body();
+
+  if(m_cfg.has_magent)
+    seq1_mxtn = mbase_seq1::type_id::create("seq1_mxtn"); 
+  begin
+    seq1_mxtn.start(ma_seqrh); 
+  end
+
+  if(m_cfg.has_sagent)
+    seq1_sxtn = sbase_seq1::type_id::create("seq1_sxtn"); 
+  begin
+    seq1_sxtn.start(sl_seqrh); 
+  end
+endtask
+

@@ -1,0 +1,20 @@
+module top;
+
+  import test_pkg::*;
+  import uvm_pkg::*;
+
+  bit clock;
+  always begin
+    #10 clock = ! clock;
+  end
+
+  intf in_0(clock);
+
+  top DUT (.clk(clock), .rst(in_0.rst), .a(in_0.a), .b(in_0.b), .c(in_0.c), .d(in_0.d));
+
+  initial begin
+    uvm_config_db #(virtual intf) :: set (null, "*", "vif_0", in_0);
+    run_test();
+  end
+
+endmodule

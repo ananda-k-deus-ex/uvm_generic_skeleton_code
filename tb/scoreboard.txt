@@ -1,0 +1,103 @@
+class scoreboard extends uvm_scoreboard;
+`uvm_component_utils(scoreboard)
+
+  //analysis port - uvm_analysis_imp #(master_xtn, scoreboard) m_agent;
+  //analysis port - uvm_analysis_imp #(slave_xtn, scoreboard) s_agent;
+
+  uvm_tlm_analysis_fifo#(master_xtn)fifo_mah;
+  uvm_tlm_analysis_fifo#(slave_xtn)fifo_slh;
+
+  master_xtn mxtn; 
+  slave_xtn sxtn;
+
+  bit [1:0]master,data_out; 
+  bit [1:0]slave,rx_out;
+
+  extern function new(string name="scoreboard",uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern task run_phase(uvm_phase phase);
+  extern function int compare_data(master_xtn mxtn,slave_xtn sxtn);
+
+  covergroup M_fcov; 
+    M_WRITE : coverpoint mxtn.a {
+      bins a_bin_1 = {1};
+      bins a_bin_0 = {0};
+    }
+    M_READ : coverpoint mxtn.b {
+      bins b_bin_1 = {1};
+      bins b_bin_0 = {0};
+    }
+    M_READ_WRITE_cross:cross M_WRITE, M_READ;
+  endgroup
+
+  covergroup S_fcov;
+    S_WRITE : coverpoint sxtn.d {
+      bins d_bin_1 = {1};
+      bins d_bin_0 = {0};
+    }
+    S_READ : coverpoint sxtn.c {
+      bins c_bin_1 = {1};
+      bins c_bin_0 = {0};
+    }
+    S_READ_WRITE_cross:cross S_WRITE, S_READ;
+  endgroup
+endclass
+
+function scoreboard::new(string name = "scoreboard",uvm_component parent);
+  super.new(name,parent);
+  M_fcov=new;
+  S_fcov=new; 
+endfunction
+
+function void scoreboard :: build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+  mxtn=master_xtn::type_id::create("mxtn"); 
+  sxtn=slave_xtn::type_id::create("sxtn"); 
+endfunction
+
+task scoreboard::run_phase(uvm_phase phase); 
+  forever begin 
+    fork 
+      begin 
+        fifo_mah.get(mxtn);
+        M_fcov.sample;
+        data_out={mxtn.a,mxtn.b};
+        `uvm_info("SCORE_BOARD",$sformatf("Printing from M_monitor \n %d", mxtn.sprint()),UVM_LOW)
+      end 
+      begin
+        fifo_slh.get(sxtn); 
+        S_fcov1.sample;
+        rx_out={mxtn.c,mxtn.d};
+        `uvm_info("SCORE_BOARD",$sformatf("Printing from S_monitor \n %d", sxtn.sprint()),UVM_LOW)
+      end
+
+      begin
+        if(compare_data(mxtn,sxtn))
+        `uvm_info("IN_SCOREBOARD","data is matched",UVM_LOW)
+
+        else
+        `uvm_info("IN_SCOREBOARD","data is not matched",UVM_LOW)
+      end
+    join 
+  end 
+endtask
+
+function int scoreboard::compare_data(master_xtn mxtn,slave_xtn sxtn); 
+
+  for(int i=0;i<2;i++) begin
+    master[i]=data_out[i]; 
+    slave[i]=sxtn.mosi_pad_o[i];
+  end
+
+  $display("transaction from sl_monitor is %b",data_out);
+  $display("value of mosi is %b",slave);
+  $display("master - master data==%0d",master);
+  $display("slave - slave data==%0d",slave);
+
+  if(master==slave)
+    $display("MOSI IS MATCHED");
+  else
+    $display("MOSI IS MISMATCHED");
+
+endfunction
+

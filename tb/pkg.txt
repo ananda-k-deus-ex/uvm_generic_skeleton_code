@@ -1,0 +1,32 @@
+package pkg;
+
+  import uvm_pkg::*;
+  
+  `include "uvm_macros.svh";
+  
+  `include "master_xtn.sv"
+  `include "ma_agent_config.sv"
+  `include "sl_agent_config.sv"
+  `include "env_config.sv"
+  `include "ma_driver.sv"
+  `include "ma_monitor.sv"
+  `include "ma_sequencer.sv"
+  `include "ma_agent.sv"
+  `include "ma_agt_top.sv"
+  `include "ma_seqs.sv"
+
+  `include "slave_xtn.sv"
+  `include "sl_monitor.sv"
+  `include "sl_sequencer.sv"
+  `include "sl_seqs.sv"
+  `include "sl_driver.sv"
+  `include "sl_agent.sv"
+  `include "sl_agt_top.sv"
+
+  `include "virtual_sequencer.sv"
+  `include "virtual_seqs.sv"
+  `include "scoreboard.sv"
+  `include "env.sv"
+  `include "vtest_lib.sv" 
+
+endpackage
