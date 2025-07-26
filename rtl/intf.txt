@@ -1,0 +1,39 @@
+interface intf(input bit clk);
+
+  bit rst;
+  logic a;
+  logic b;
+  logic c;
+
+  clocking mst_drv_cb @(posedge clk);
+    default input #1 output #1;
+      output rst;
+      output a;
+      input b;
+  endclocking
+
+  clocking mst_mon_cb @(posedge clk);
+    default input #1 output #1;
+      input rst;
+      input a;
+      output b;
+    endclocking
+
+  clocking slv_drv_cb @(posedge clk);
+    defafult input #1 output #1;
+      input c;
+      output d;
+  endclocking      
+
+  clocking slv_mon_cb @(posedge clk);
+    default input #1 output #1;
+      output c;
+      input d;
+  endclocking
+
+  modport MASTER_DRIVER_MP (clocking mst_drv_cb);
+  modport MASTER_MONITOR_MP (clocking mst_mon_cb);
+  modport SLAVE_DRIVER_MP (clocking slv_drv_cb)
+  modport SLAVE_MONITOR_MP (clocking slv_mon_cb);
+
+endinterface
