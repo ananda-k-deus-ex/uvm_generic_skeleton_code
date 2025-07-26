@@ -1,0 +1,46 @@
+class sl_driver extends uvm_driver #(slave_xtn);
+`uvm_component_utils(sl_driver)
+
+  virtual intf.SLAVE_DRIVER_MP vif;
+  sl_agent_config m_cfg;
+
+  extern function new(string name ="sl_driver",uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern function void connect_phase(uvm_phase phase); 
+  extern task run_phase(uvm_phase phase);
+  extern task send_to_dut(slave_xtn xtn);
+  extern function void report_phase(uvm_phase phase); 
+endclass
+
+function sl_driver::new(string name ="sl_driver",uvm_component parent);
+  super.new(name,parent); 
+endfunction
+
+function void sl_driver::build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+  if(!uvm_config_db #(sl_agent_config)::get(this,"","sl_agent_config",m_cfg))
+  `uvm_fatal("CONFIG","cannot get() m_cfg from uvm_config_db. set() it")
+endfunction
+
+function void sl_driver::connect_phase(uvm_phase phase); 
+  vif = m_cfg.vif;
+endfunction
+
+
+task sl_driver::run_phase(uvm_phase phase); 
+  forever begin
+    seq_item_port.get_next_item(req); 
+    send_to_dut(req); 
+    seq_item_port.item_done();
+  end 
+endtask
+
+task sl_driver::send_to_dut(slave_xtn xtn);
+`uvm_info("sl_driver",$sformatf("printing from driver \n%s",xtn.sprint()),UVM_LOW)
+
+  @(posedge vif.slv_drv_cb.c); 
+  vif.slave_dr_cb.d<=xtn.d; //1'b0, 1'b1, $urandom
+
+endtask
+
+

@@ -1,0 +1,20 @@
+class slave_xtn extends uvm_sequence_item;
+`uvm_object_utils(slave_xtn)
+
+  bit c; 
+  rand bit d;
+
+extern function new(string name ="slave_xtn"); 
+extern function void do_print(uvm_printer printer);
+endclass
+
+function slave_xtn::new(string name="slave_xtn"); 
+  super.new(name);
+endfunction
+
+function void slave_xtn::do_print(uvm_printer printer); 
+  super.do_print(printer); 
+  printer.print_field ("c",this.c,2,UVM_DEC);
+  printer.print_field ("d",this.d,2,UVM_DEC); 
+endfunction
+

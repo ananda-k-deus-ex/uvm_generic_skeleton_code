@@ -1,0 +1,31 @@
+class sl_agt_top extends uvm_env;
+`uvm_component_utils(sl_agt_top) 
+
+  sl_agent sagenth;
+  env_config m_cfg;
+
+  extern function new(string name="sl_agt_top",uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern task run_phase(uvm_phase phase);
+endclass
+
+function sl_agt_top::new(string name="sl_agt_top",uvm_component parent);
+  super.new(name,parent); 
+endfunction
+
+function void sl_agt_top::build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+  if(!uvm_config_db #(env_config)::get(this,"","env_config",m_cfg))
+  `uvm_fatal("CONFIG","cannot get() m_cfg from uvm_config_db. set() it")
+
+  if(m_cfg.has_magent) begin
+    uvm_config_db #(sl_agent_config)::set(this,"sagenth*","sl_agent_config", m_cfg.m_sl_agent_cfg); 
+    sagenth=sl_agent::type_id::create("sagenth",this);
+  end
+
+endfunction
+
+task sl_agt_top::run_phase(uvm_phase phase); 
+  uvm_top.print_topology();
+endtask
+

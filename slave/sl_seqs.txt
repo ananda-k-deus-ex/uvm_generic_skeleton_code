@@ -1,0 +1,31 @@
+class sbase_seq extends uvm_sequence #(slave_xtn);
+`uvm_object_utils(sbase_seq)
+
+  extern function new(string name ="sbase_seq"); 
+endclass
+
+function sbase_seq::new(string name ="sbase_seq"); 
+  super.new(name);
+endfunction
+
+class sbase_seq1 extends sbase_seq;
+`uvm_object_utils(spi_sbase_seq1)
+
+  extern function new(string name ="sbase_seq1"); 
+  extern task body();
+endclass
+
+function sbase_seq1::new(string name ="sbase_seq1"); 
+  super.new(name);
+endfunction
+
+task sbase_seq1::body(); 
+  req =slave_xtn::type_id::create("req");
+
+  start_item(req);
+    assert(req.randomize()); //Inline Constraint - assert(req.randomize() with {miso_pad_i==4'b1110;});
+    `uvm_info("d",$sformatf("printing from sequence \n%d",req.sprint()),UVM_HIGH) 
+  finish_item(req);
+
+endtask
+

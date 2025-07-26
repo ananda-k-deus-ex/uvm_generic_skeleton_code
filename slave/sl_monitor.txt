@@ -1,0 +1,51 @@
+class sl_monitor extends uvm_monitor;
+`uvm_component_utils(sl_monitor)
+
+  virtual intf.SLAVE_MONITOR_MP vif; 
+  slave_xtn xtn; 
+  sl_agent_config m_cfg;
+  uvm_analysis_port #(slave_xtn) monitor_port;
+
+  extern function new(string name = "sl_monitor", uvm_component parent); 
+  extern function void build_phase(uvm_phase phase);
+  extern function void connect_phase(uvm_phase phase); 
+  extern task run_phase(uvm_phase phase);
+  extern task collect_data();
+endclass
+
+function sl_monitor::new (string name = "sl_monitor", uvm_component parent);
+  super.new(name, parent);
+  monitor_port = new("monitor_port", this); 
+endfunction
+
+function void sl_monitor::build_phase(uvm_phase phase); 
+  super.build_phase(phase);
+  if(!uvm_config_db #(sl_agent_config)::get(this,"","sl_agent_config",m_cfg))
+  `uvm_fatal("CONFIG","cannot get() m_cfg from uvm_config_db. set() it")
+endfunction
+
+function void sl_monitor::connect_phase(uvm_phase phase); 
+  vif = m_cfg.vif;
+endfunction
+
+task sl_monitor::run_phase(uvm_phase phase);
+  super.run_phase(phase);
+  xtn=slave_xtn::type_id::create("xtn"); 
+  forever begin 
+    collect_data(); 
+  end
+endtask
+
+task spi_sl_monitor::collect_data();
+
+  @(negedge vif.slv_mon_cb);
+
+  xtn.a=vif.slv_mon_cb.a;
+  `uvm_info("a",$sformatf("printing from slave monitor is a=%d",data_sent.sprint()),UVM_LOW)
+  xtn.b=vif.slv_mon_cb.b;
+  `uvm_info("b",$sformatf("printing from slave monitor is b=%d",data_sent.sprint()),UVM_LOW)
+
+  monitor_port.write(xtn);
+
+endtask
+

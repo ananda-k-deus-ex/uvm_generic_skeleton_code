@@ -1,0 +1,9 @@
+class sl_sequencer extends uvm_sequencer #(slave_xtn);
+`uvm_component_utils(sl_sequencer)
+
+  extern function new(string name = "sl_sequencer",uvm_component parent);
+endclass
+
+function sl_sequencer::new(string name="sl_sequencer",uvm_component parent); 
+  super.new(name,parent);
+endfunction
